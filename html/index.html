@@ -1,0 +1,184 @@
+﻿<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8"></meta>
+
+<title></title>
+
+<script src="../scripts/require.js"></script>
+
+<script src="../scripts/b-spline/index.js"></script>
+<script src="../scripts/script.js"></script>
+<script src="../scripts/xycoordinate.js"></script>
+
+<script>
+
+function drawGraph(tmin, tmax, degree, points) {
+
+	dt = (tmax-tmin) / 120;
+	var pointOld = null;
+	var tOld = 0.0;	
+	// ループ
+	for (t = tmin; t < tmax + dt; t = t + dt) {
+		var point = interpolateAlgo(t, degree, points, [2.0, 2.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 9.0, 9.0]); // [2.0, 2.0, 2.0, 2.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 9.0, 9.0, 9.0, 9.0]
+		console.log(tOld, pointOld, t, point)
+		
+		if (t == tmin) {
+		}
+		else {
+			drawLine(pointOld.x, pointOld.y, point.x, point.y, "white", 1);
+			drawCircle(point.x, point.y, 0.04, "white", 0.01, "blue");
+		}
+		tOld = t;
+		pointOld = point;
+
+	}
+}
+
+
+function graph() {
+
+
+var degree = 3;
+
+    var r, t,tmax,dt, x,y, t0,x0,y0, interval;
+
+	f = document.iform.f.value;
+	tmin = eval(document.iform.tmin.value);
+	tmax = eval(document.iform.tmax.value);
+	xmin = eval(document.iform.xmin.value);
+	xmax = eval(document.iform.xmax.value);
+	ymin = eval(document.iform.ymin.value);
+	ymax = eval(document.iform.ymax.value);
+	interval = eval(document.iform.interval.value);
+	
+
+	cw = 800;  ch = 400;
+	setCanvas("canvas1", "gray");
+	drawLine(xmin,0, xmax,0, "aqua", 1);
+	drawLine(0,ymin, 0,ymax, "aqua", 1);
+
+	drawAxisGrid("" , "white", 1.0, "aqua", 0.5, 0.0, 10.0, 0.0, 1.0, 1.0, 0.1);
+
+	/*
+	var size = 8;
+	for (i = 0; i < size; i++) {
+		var points = []
+		for (j = 0; j < size; j++) {
+			if (j == i) {
+				points[j] = 1.0;
+			}
+			else {
+				points[j] = 0.0;
+			}
+		}
+		
+		var frontPoints = [];
+		for (var k = 0; k < degree - 1; ++k) {
+			frontPoints.push(points[0]);
+		}
+		
+		var endPoints = [];
+		for (var k = 0; k < degree - 1; ++k) {
+			endPoints.push(points[points.length - 1]);
+		}
+		
+		var newPoints = frontPoints.concat(points).concat(endPoints);
+		
+		console.log(frontPoints, endPoints, points);
+		drawGraph(tmin, tmax, degree, points);
+		
+	}
+	*/
+	
+	
+	var colorIndex = 0;
+	function getColorName() {
+		
+		++colorIndex;
+		if ( colorIndex % 8 == 0) {
+			return "white";
+		}
+		else if ( colorIndex % 8 == 1) {
+			return "black"
+		}
+		else if ( colorIndex % 8 == 2) {
+			return "blue"
+		}
+		else if ( colorIndex % 8 == 3) {
+			return "green"
+		}
+		else if ( colorIndex % 8 == 4) {
+			return "yellow"
+		}
+		else if ( colorIndex % 8 == 5) {
+			return "pink"
+		}
+		else if ( colorIndex % 8 == 6) {
+			return "orange"
+		}
+		else {
+			return "skyblue"
+		}
+
+	}
+
+	function drawCurve(linePoints) {
+		var linePointOld = null;
+		var color = getColorName();
+		for (var i = 0; i < linePoints.length; i++) {
+			var linePoint = linePoints[i];
+			drawCircle(linePoint.x, linePoint.y, 0.02, "white", 0.01, "blue");
+			if (linePointOld != null) {
+				drawLine(linePointOld.x, linePointOld.y, linePoint.x, linePoint.y, color, 1);
+			}
+			linePointOld = linePoint;
+		}
+	} 
+	
+	
+	var pointLength = 4;
+
+	var linePointsArray = interpolateAlgo2(pointLength, degree, drawCurve);
+	
+	return;
+	
+	for (var j = 0; j < linePointsArray.length; ++j) {
+		var linePoints = linePointsArray[j];
+		drawCurve(linePoints)
+	}
+	
+
+}
+
+</script>
+
+</head>
+
+<!--=====================================================-->
+<body>
+<p class="small">
+
+<h1></h1>
+<hr>
+<!-- ==================================================================== -->
+
+<div style="float:right">
+<canvas id="canvas1" width="800" height="400"></canvas>
+</div>
+<form name="iform">
+数式の指定<br />
+r=f(t)=<input type="text" size="30" name="f" value=""></input><br>
+ｔの範囲<br />
+tmin=<input type="text" size="10" name="tmin" value="0"></input>
+tmax=<input type="text" size="10" name="tmax" value="1.0"></input><br>
+グラフの表示範囲（矩形（xmin,ymin)-(xmax,ymax)）<br>
+xmin=<input type="text" size="3" name="xmin" value="0"></input>
+xmax=<input type="text" size="3" name="xmax" value="6.0"></input>
+ymin=<input type="text" size="3" name="ymin" value="0"></input>
+ymax=<input type="text" size="3" name="ymax" value="1"></input><br>
+遅延時間=<input type="text" size="3" name="interval" value="50">(ms)</input><br>
+<input type="button" value="実行" onclick="graph()"></input>
+</form>
+</body>
+</html>
