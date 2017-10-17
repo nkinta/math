@@ -1,7 +1,7 @@
 
-function interpolateAlgo2(pointLength, degree, drawCurveFunc, knots) {
+function interpolateAlgo2(pointLength, degree, drawCurveFunc, crearFunc, knots) {
 
-	var knots = [0, 0.01, 0.02, 0.03, 1.5, 2.5, 3.00000000000000, 3.04, 3.05, 3.0599999999999996];
+	// var knots = [0, 0.01, 0.02, 0.03, 1.5, 2.5, 3.00000000000000, 3.04, 3.05, 3.0599999999999996];
 
 	if(!knots) {
 		// build knot vector of length [pointLength + degree + 1]
@@ -13,7 +13,7 @@ function interpolateAlgo2(pointLength, degree, drawCurveFunc, knots) {
 				value = value + 1.0;
 			}
 			else {
-				value = value + 0.01;
+				value = value + 1.0;
 			}
 			
 		}
@@ -22,8 +22,14 @@ function interpolateAlgo2(pointLength, degree, drawCurveFunc, knots) {
 	console.log(knots);
 	
 	var kfuncList = []
+
+	var valueStructArray = []; 
 	
-	var nfunc = function f(i, k, t) {
+	for (var i = 0; i < degree + 1; ++i) {
+		valueStructArray.push([]);
+	}
+	
+	var nfunc = function f(k, i, t) {
 	
 		if (k == 0) {
 			if (knots[i] <= t && t < knots[i+1]) {
@@ -34,22 +40,59 @@ function interpolateAlgo2(pointLength, degree, drawCurveFunc, knots) {
 			}
 		}
 		else {
-			var value1 = f(i, k - 1, t);
-			var value2 = f(i + 1, k - 1, t);
+			var value1 = f(k - 1, i, t);
+			var value2 = f(k - 1, i + 1, t);
 			var rate1 = (t - knots[i]) / (knots[i + k] - knots[i]);
 			var rate2 = (knots[i + k + 1] - t) / (knots[i + k + 1]  - knots[i + 1]);
 			var result = rate1 * value1 + rate2 * value2;
+			
+			var value1Point = new Object();
+			var value2Point = new Object();
+			var rate1Point = new Object();
+			var rate2Point = new Object();
+			var resultPoint = new Object();
+			
+			value1Point.x = t;
+			value2Point.x = t;
+			rate1Point.x = t;
+			rate2Point.x = t;
+			resultPoint.x = t;
+
+			value1Point.y = value1;
+			value2Point.y = value2;
+			rate1Point.y = rate1;
+			rate2Point.y = rate2;
+			resultPoint.y = result;
+			
+			var valueStruct = new Object();
+			
+			if (valueStructArray[k][i] == undefined) {
+				var valueStruct = new Object();
+				valueStructArray[k][i] = valueStruct;
+				valueStruct.value1Array = [];
+				valueStruct.value2Array = [];
+				valueStruct.rate1Array = [];
+				valueStruct.rate2Array = [];
+				valueStruct.resultArray = [];
+			}
+			
+			valueStructArray[k][i].value1Array.push(value1Point);
+			valueStructArray[k][i].value2Array.push(value2Point);
+			valueStructArray[k][i].rate1Array.push(rate1Point);
+			valueStructArray[k][i].rate2Array.push(rate2Point);
+			valueStructArray[k][i].resultArray.push(resultPoint);
+		
 			return result;
 		}
 	};
 	
 	linePointsArray = []
-	for (var j = 0; j < pointLength + degree - 1; ++j) {
+	for (var p = 0; p < pointLength + degree - 1; ++p) {
 		var linePoints = []
-		for (var i = 0; i < knots.length - 1; ++i) {
+		for (var j = 0; j < knots.length - 1; ++j) {
 			var lineKnotsPoints = []
-			for (var t = knots[i]; t < knots[i + 1]; t = t + 0.1) {
-				var value = nfunc(j, degree, t);
+			for (var t = knots[j]; t < knots[j + 1]; t = t + 0.1) {
+				var value = nfunc(degree, p, t);
 				console.log(t, value);
 				var linePoint = new Object();
 				linePoint.x = t;
@@ -57,7 +100,22 @@ function interpolateAlgo2(pointLength, degree, drawCurveFunc, knots) {
 				lineKnotsPoints.push(linePoint)
 			}
 			linePoints = linePoints.concat(lineKnotsPoints);
+			
 		}
+		
+		for (var d = 0; d < valueStructArray.length; ++d) {
+			var temp = valueStructArray[d];
+			for (var j = 0; j < temp.length; ++j) {
+				crearFunc();
+				drawCurveFunc(temp[j].value1Array);
+				drawCurveFunc(temp[j].rate1Array);
+				drawCurveFunc(temp[j].value2Array);
+				drawCurveFunc(temp[j].rate2Array);
+				crearFunc();
+				drawCurveFunc(temp[j].resultArray);
+			}
+		}
+				
 		drawCurveFunc(linePoints);
 		linePointsArray.push(linePoints);
 	}
