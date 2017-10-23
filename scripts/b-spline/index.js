@@ -97,6 +97,42 @@ function interpolateAlgo3(pointLength, degree, drawCurveFunc, crearFunc, knots) 
 	
 	}
 	
+	function createIntegrate(offset, coefficientData) {
+	
+		var tEnd = knots[coefficientData.div + 1];	
+		var coe = coefficientData.coefficient;
+		
+		return 
+	}
+	
+	function calcValue(t, coe) {
+
+		var tArrayLength = coe.length;
+		var tArray = [];
+
+		var tTemp = 1.0;
+		for (var i = 0; i < tArrayLength; ++i) {
+			tArray.push(tTemp);
+			tTemp = tTemp * t;
+		}
+
+		/*
+				var tTemp = t;
+				for (var i = 0; i < tArrayLength; ++i) {
+					tArray.push((1.0 / (i + 1.0)) * tTemp);
+					tTemp = tTemp * t;
+				}
+		
+		*/
+
+		var value = 0.0;
+		for (var i = 0; i < coe.length; ++i) {
+			value += coe[i] * tArray[i];
+		}
+		
+		return value;
+	}
+	
 	function drawDiv(knots, coefficientDataArray) {
 	
 		for (var coefficientData of coefficientDataArray) {
@@ -113,25 +149,7 @@ function interpolateAlgo3(pointLength, degree, drawCurveFunc, crearFunc, knots) 
 			var pointArray = []
 			for (var t = tStart; t < tEnd; t += tRate) {
 				
-				var tArray = [];
-				/*
-				var tTemp = 1.0;
-				for (var i = 0; i < tArrayLength; ++i) {
-					tArray.push(tTemp);
-					tTemp = tTemp * t;
-				}
-				*/
-				var tTemp = t;
-				for (var i = 0; i < tArrayLength; ++i) {
-					tArray.push(tTemp);
-					tTemp =  (1 / (i + 1)) * tTemp * t;
-				}
-				
-				var value = 0.0;
-				for (var i = 0; i < coe.length; ++i) {
-					value += coe[i] * tArray[i];
-				}
-				
+				var value = calcValue(t, coe);
 				
 				var point = new Object();
 				point.x = t;
@@ -139,10 +157,24 @@ function interpolateAlgo3(pointLength, degree, drawCurveFunc, crearFunc, knots) 
 				pointArray.push(point);
 			}
 			
+			var offsetValue = tEnd;
+			
+			
+			
 			drawCurveFunc(pointArray);
-			
-			
  		}
+	}
+	
+	function MakeIntegral(knots, coefficientDataArray) {
+		
+		
+		for (var coefficientData of coefficientDataArray) {
+			
+			
+			
+			drawCurveFunc(pointArray);
+ 		}
+		
 	}
 	
 	var nfunc = function f(k, i, div) {
@@ -179,7 +211,7 @@ function interpolateAlgo3(pointLength, degree, drawCurveFunc, crearFunc, knots) 
 			coefficientData.coefficient = coefficient;
 			coefficientDataArray.push(coefficientData)
 		}
-		
+		crearFunc();
 		drawDiv(knots, coefficientDataArray);
 		// drawCurveFunc(linePoints);
 		linePointsArray.push(coefficientDataArray);
