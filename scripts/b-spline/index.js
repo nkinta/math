@@ -1,7 +1,7 @@
 function interpolateAlgo3(pointLength, degree, drawCurveFunc, crearFunc, knots) {
 
 	// var knots = [0, 0.01, 0.02, 0.03, 1.5, 2.5, 3.00000000000000, 3.04, 3.05, 3.0599999999999996];
-
+		
 	if(!knots) {
 		// build knot vector of length [pointLength + degree + 1]
 		var knots = [];
@@ -12,10 +12,28 @@ function interpolateAlgo3(pointLength, degree, drawCurveFunc, crearFunc, knots) 
 				value = value + 1.0;
 			}
 			else {
-				value = value + 1.0;
+				value = value + 0.01;
 			}
 			
 		}
+	}
+	else {
+		startKnots = [];
+		var startValue = knots[0];
+		for (var i = 0; i < degree; ++i) {
+			startValue -= 0.01;
+			startKnots.push(startValue);
+		}
+		startKnots.reverse();
+				
+		lastKnots = [];
+		var lastValue = knots[knots.length -1];
+		for (var i = 0; i < degree; ++i) {
+			lastValue += 0.01;
+			lastKnots.push(lastValue);
+		}
+		
+		knots = startKnots.concat(knots).concat(lastKnots)
 	}
 	
 	console.log(knots);
@@ -97,12 +115,36 @@ function interpolateAlgo3(pointLength, degree, drawCurveFunc, crearFunc, knots) 
 	
 	}
 	
-	function createIntegrate(offset, coefficientData) {
+	function createIntegrate(beforeLastValue, coefficientData) {
 	
 		var tEnd = knots[coefficientData.div + 1];	
 		var coe = coefficientData.coefficient;
 		
-		return 
+		var tArrayLength = coe.length;
+		
+		var tStart = knots[coefficientData.div];
+		var tEnd = knots[coefficientData.div + 1];
+		
+		// var integrateCofficientData = createIntegrate(offset, coefficientData);
+		
+		var newCoe = [0];
+		for (var i = 0; i < coe.length; ++i) {
+			newCoe.push((1.0 / (i + 1.0)) * coe[i]);
+		}
+		var startValue = calcValue(tStart, newCoe);
+
+		var newCoe = [beforeLastValue - startValue];
+		for (var i = 0; i < coe.length; ++i) {
+			newCoe.push((1.0 / (i + 1.0)) * coe[i]);
+		}
+		
+		var newCoefficientData = new Object();
+		newCoefficientData.div = coefficientData.div;
+		newCoefficientData.coefficient = newCoe;
+		
+		var lastValue = calcValue(tEnd, newCoe);
+		
+		return [lastValue, newCoefficientData];
 	}
 	
 	function calcValue(t, coe) {
@@ -167,13 +209,19 @@ function interpolateAlgo3(pointLength, degree, drawCurveFunc, crearFunc, knots) 
 	
 	function MakeIntegral(knots, coefficientDataArray) {
 		
+		var newCoefficientDataArray = [];
 		
+		var offset = 0.0;
 		for (var coefficientData of coefficientDataArray) {
 			
+			var temp = createIntegrate(offset, coefficientData);
+			var offset = temp[0];
+			var newCoefficientData = temp[1];
 			
-			
-			drawCurveFunc(pointArray);
+			newCoefficientDataArray.push(newCoefficientData);
  		}
+ 		
+ 		drawDiv(knots, newCoefficientDataArray);
 		
 	}
 	
@@ -211,8 +259,10 @@ function interpolateAlgo3(pointLength, degree, drawCurveFunc, crearFunc, knots) 
 			coefficientData.coefficient = coefficient;
 			coefficientDataArray.push(coefficientData)
 		}
-		crearFunc();
-		drawDiv(knots, coefficientDataArray);
+		// crearFunc();
+
+		// drawDiv(knots, coefficientDataArray);
+		MakeIntegral(knots, coefficientDataArray);
 		// drawCurveFunc(linePoints);
 		linePointsArray.push(coefficientDataArray);
 	}
